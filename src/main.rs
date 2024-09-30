@@ -6,40 +6,43 @@ enum Piece {
     Black,
 }
 
+fn two_to_one(&x: &i32, &y: &i32) -> i32 {
+    (y * x) + x
+}
+
 struct Board {
-    boardArr: [[Piece; 8]; 8], //2d 8x8 array
-    //there is probably a much more simple representation of a checkers board
-    //since half of the board cannot be used and pieces can only move diagonally
+    board_arr: [Piece; 64], //2d 8x8 array
+                            //there is probably a much more simple representation of a checkers board
+                            //since half of the board cannot be used and pieces can only move diagonally
 }
 
 impl Board {
-    pub fn new(&self) -> Self {
-
-        for y in &self.boardArr.len(){
-            for x in &self.boardArr[y].len() {
-                if (x % 2 == 0) && (y[x] % 2 == 1) {
-                    if y[x] <= 2 {
-                        &self.boardArr[y][x] = Piece::Black;
-                    } else if y[x] >= 5 {
-                        &self.boardArr[y][x] = Piece::Red;
+    pub fn new(self) -> Self {
+        for y in 0..8 {
+            for x in 0..8 {
+                if (x % 2 == 0) && (y % 2 == 1) {
+                    if y <= 2 {
+                        self.board_arr[two_to_one(&x, &y)] = Piece::Black;
+                    } else if y >= 5 {
+                        self.board_arr[two_to_one(&x, &y)] = Piece::Red;
                     }
-                } else if (x % 2 == 1) && (y[x] % 2 == 0) {
-                    if y[x] <= 2 {
-                        &self.boardArr[y][x] = Piece::Black;
+                } else if (x % 2 == 1) && (y % 2 == 0) {
+                    if y <= 2 {
+                        self.board_arr[two_to_one(&x, &y)] = Piece::Black;
                     } else if y[x] >= 5 {
-                        &self.boardArr[y][x] = Piece::Red;
+                        self.board_arr[two_to_one(&x, &y)] = Piece::Red;
                     }
                 } else {
-                    &self.boardArr[y][x] = Piece::None;
+                    self.board_arr[two_to_one(&x, &y)] = Piece::None;
                 }
             }
         }
-        return &self;
+        return self;
     }
 
     pub fn print(self) {
-        for y in self.boardArr.len() {
-            for x in self.boardArr[y].len() {
+        for y in 0..8 {
+            for x in 0..8 {
                 print!(stringify!(&x));
             }
             println!();
