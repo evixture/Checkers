@@ -1,20 +1,13 @@
 use crate::board::{Board, MoveMessage};
-use iced::widget::{button, column, text, Column};
-use iced::Center;
+use iced::widget::button;
+//use iced::{Center, Task};
 
 #[derive(Default)]
-pub struct CheckersWindow {
-    //value: i64,
-    board: Board,
+pub struct CheckersWindow<'a> {
+    board: Board<'a>,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum Message {
-    Increment,
-    Decrement,
-}
-
-impl CheckersWindow {
+impl<'a> CheckersWindow<'a> {
     pub fn new(self) -> Self {
         CheckersWindow {
             board: Board::new(),
@@ -22,20 +15,16 @@ impl CheckersWindow {
     }
 
     //iced::run expects a state and message from update function
-    pub fn update(&mut self, message: MoveMessage) {
-        // match message {
-        //     Message::Increment => {
-        //         self.value += 1;
-        //     }
-        //     Message::Decrement => {
-        //         self.value -= 1;
-        //     }
-        // }
+    pub fn update(&mut self, _message: MoveMessage) {
+        //message: MoveMessage
         self.board.update();
     }
 
     //iced::run expects at least a state from view function
-    pub fn view(self) -> iced::Element<'static, MoveMessage> {
+    pub fn view(&self) -> iced::Element<MoveMessage>
+where
+        //'a: 'b, //??? need?
+    {
         // iced::widget::column![
         //     button("Increment").on_press(Message::Increment),
         //     text(self.value).size(50),
@@ -45,6 +34,7 @@ impl CheckersWindow {
         // .align_x(Center)
 
         //iced::widget::container(iced::widget::row![button("Red")]).into()
-        self.board.get_view()
+        //self.board.get_view()
+        button("something").into()
     }
 }
