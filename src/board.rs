@@ -3,17 +3,14 @@ use iced::widget::Column;
 use iced::widget::Row;
 use iced::Element;
 
-#[derive(Default)]
 enum Piece {
-    #[default]
     None,
     Red,
     Black,
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub enum MoveMessage {
-    #[default]
     Selection,
     None,
 }
@@ -23,12 +20,12 @@ fn map2d(x: &usize, y: &usize, width: &usize) -> usize {
     (y * width) + x
 }
 
-//#[derive(Default)]
 pub struct Board<'a> {
     board_arr: Vec<Piece>,
     board_view: Vec<Element<'a, MoveMessage>>, //Column<'a, MoveMessage>,
 }
 
+//manually implement default instead of #derive'ing
 impl Default for Board<'_> {
     fn default() -> Self {
         Board::new()
@@ -79,22 +76,11 @@ impl<'a> Board<'a> {
             }
             println!();
         }
-
-        // fn default() -> Self {
-        //     Board::new()
-        // }
     }
 
     pub fn update(&self) {}
 
     pub fn get_view(self) -> Element<'a, MoveMessage> {
-        //self.board_view.into()
         Column::from_vec(self.board_view).into()
     }
 }
-
-// impl<'a> Default for Column<'a, MoveMessage> {
-//     fn default() -> Self {
-//         Column::new()
-//     }
-// }

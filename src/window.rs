@@ -16,25 +16,12 @@ impl<'a> CheckersWindow<'a> {
 
     //iced::run expects a state and message from update function
     pub fn update(&mut self, _message: MoveMessage) {
-        //message: MoveMessage
         self.board.update();
     }
 
     //iced::run expects at least a state from view function
     pub fn view(&self) -> iced::Element<MoveMessage>
-where
-        //'a: 'b, //??? need?
-    {
-        // iced::widget::column![
-        //     button("Increment").on_press(Message::Increment),
-        //     text(self.value).size(50),
-        //     button("Decrement").on_press(Message::Decrement)
-        // ]
-        // .padding(20)
-        // .align_x(Center)
-
-        //iced::widget::container(iced::widget::row![button("Red")]).into()
-        //self.board.get_view()
+where {
         button("something").into()
     }
 }

@@ -1,11 +1,10 @@
 pub mod board;
 pub mod window;
 
-use board::Board;
+//use board::Board;
 use window::CheckersWindow;
 fn main() -> iced::Result {
-    // -> iced::Result
-    Board::new().print();
+    //Board::new().print();
     iced::run(
         "Hello, world!",
         CheckersWindow::update,
