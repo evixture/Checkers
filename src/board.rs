@@ -4,10 +4,18 @@ use iced::widget::{button, Container};
 use iced::Element;
 
 #[derive(Clone)]
-enum Piece {
+pub enum Piece {
     None,
     Red,
     Black,
+}
+
+pub fn piece_to_string(piece: &Piece) -> String {
+    match piece {
+        Piece::None => "X".to_string(),
+        Piece::Red => "R".to_string(),
+        Piece::Black => "B".to_string(),
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -17,13 +25,13 @@ pub enum MoveMessage {
 }
 
 //for 8x8 grid
-fn map2d(x: &usize, y: &usize, width: &usize) -> usize {
+pub fn map2d(x: &usize, y: &usize, width: &usize) -> usize {
     (y * width) + x
 }
 
 //#[derive(Clone)]
 pub struct Board {
-    board_arr: Vec<Piece>,
+    pub board_arr: Vec<Piece>,
     //board_view: Vec<Element<MoveMessage>>, //Column<'a, MoveMessage>,
 }
 
@@ -35,7 +43,7 @@ impl Default for Board {
 }
 
 impl Board {
-    const WIDTH: usize = 8;
+    pub const WIDTH: usize = 8;
 
     pub fn new() -> Self {
         let mut new_board_arr: Vec<Piece> = Vec::with_capacity(Self::WIDTH);
@@ -65,41 +73,35 @@ impl Board {
         }
     }
 
-    pub fn print(self) {
-        for y in 0..Self::WIDTH {
-            for x in 0..Self::WIDTH {
-                let mut str: String = String::new();
-                match self.board_arr[map2d(&x, &y, &Self::WIDTH)] {
-                    Piece::None => str.push_str("."),
-                    Piece::Black => str.push_str("B"),
-                    Piece::Red => str.push_str("R"),
-                }
-                print!("{}", str);
-            }
-            println!();
-        }
-    }
+    // pub fn print(self) {
+    //     for y in 0..Self::WIDTH {
+    //         for x in 0..Self::WIDTH {
+    //             let mut str: String = String::new();
+    //             match self.board_arr[map2d(&x, &y, &Self::WIDTH)] {
+    //                 Piece::None => str.push_str("."),
+    //                 Piece::Black => str.push_str("B"),
+    //                 Piece::Red => str.push_str("R"),
+    //             }
+    //             print!("{}", str);
+    //         }
+    //         println!();
+    //     }
+    // }
 
-    pub fn update(&self) {}
+    // pub fn update(&self) {}
 
-    pub fn get_view(&self) -> Element<MoveMessage> {
-        //Column::from_vec(self.board_view).into()
-        //button("something").into()
-        //let ret = iced::widget::column!();
-
-        // for y in 0..Self::WIDTH {
-        //     let mut row : Row<Element<MoveMessage>> = Row::new();
-        //     for x in 0..Self::WIDTH {
-        //         row.push(button("X"));
-        //     }
-        //     ret.push(row);
-        // }
-        // ret.into()
-        let mut r: Row<iced::widget::Button<MoveMessage>> = iced::widget::Row::new();
-        for y in 0..Self::WIDTH {
-            r.push(button("x"));
-        }
-
-        iced::widget::column!(button("1"), button("2")).into()
-    }
+    //     pub fn get_view(&self) -> Element<MoveMessage> {
+    //         let mut v: Vec<iced::Element<MoveMessage>> = Vec::with_capacity(Self::WIDTH);
+    //         for x in 0..Self::WIDTH {
+    //             let str: String;
+    //             match self.board_arr[x] {
+    //                 Piece::None => str = "X".to_string(),
+    //                 Piece::Red => str = "R".to_string(),
+    //                 Piece::Black => str = "B".to_string(),
+    //             };
+    //
+    //             v.push(button(str.as_str()).on_press(MoveMessage::Selection).into());
+    //         }
+    //         iced::widget::Row::from_vec(v).into()
+    //     }
 }
