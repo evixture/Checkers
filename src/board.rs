@@ -1,8 +1,9 @@
-use iced::widget::button;
 use iced::widget::Column;
 use iced::widget::Row;
+use iced::widget::{button, Container};
 use iced::Element;
 
+#[derive(Clone)]
 enum Piece {
     None,
     Red,
@@ -20,19 +21,20 @@ fn map2d(x: &usize, y: &usize, width: &usize) -> usize {
     (y * width) + x
 }
 
-pub struct Board<'a> {
+//#[derive(Clone)]
+pub struct Board {
     board_arr: Vec<Piece>,
-    board_view: Vec<Element<'a, MoveMessage>>, //Column<'a, MoveMessage>,
+    //board_view: Vec<Element<MoveMessage>>, //Column<'a, MoveMessage>,
 }
 
 //manually implement default instead of #derive'ing
-impl Default for Board<'_> {
+impl Default for Board {
     fn default() -> Self {
         Board::new()
     }
 }
 
-impl<'a> Board<'a> {
+impl Board {
     const WIDTH: usize = 8;
 
     pub fn new() -> Self {
@@ -59,7 +61,7 @@ impl<'a> Board<'a> {
         }
         Board {
             board_arr: new_board_arr,
-            board_view: new_board_vec, //Column::from_vec(new_board_vec),
+            //board_view: new_board_vec, //Column::from_vec(new_board_vec),
         }
     }
 
@@ -80,7 +82,24 @@ impl<'a> Board<'a> {
 
     pub fn update(&self) {}
 
-    pub fn get_view(self) -> Element<'a, MoveMessage> {
-        Column::from_vec(self.board_view).into()
+    pub fn get_view(&self) -> Element<MoveMessage> {
+        //Column::from_vec(self.board_view).into()
+        //button("something").into()
+        //let ret = iced::widget::column!();
+
+        // for y in 0..Self::WIDTH {
+        //     let mut row : Row<Element<MoveMessage>> = Row::new();
+        //     for x in 0..Self::WIDTH {
+        //         row.push(button("X"));
+        //     }
+        //     ret.push(row);
+        // }
+        // ret.into()
+        let mut r: Row<iced::widget::Button<MoveMessage>> = iced::widget::Row::new();
+        for y in 0..Self::WIDTH {
+            r.push(button("x"));
+        }
+
+        iced::widget::column!(button("1"), button("2")).into()
     }
 }
