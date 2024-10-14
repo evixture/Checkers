@@ -1,40 +1,15 @@
 use crate::board::{map2d, Board, MoveMessage, Piece};
 use iced::border::Radius;
 use iced::widget::button::{Status, Style};
-use iced::widget::{button, Button};
+use iced::widget::Button;
 use iced::{color, widget, Background, Border, Color, Element, Shadow, Theme};
-
-// #[derive(Default)]
-// pub struct CheckersWindow {
-//     board: Board,
-// }
-//
-// impl CheckersWindow {
-//     pub fn new(self) -> Self {
-//         CheckersWindow {
-//             board: Board::new(),
-//         }
-//     }
-//
-//     //iced::run expects a state and message from update function
-//     pub fn update(&mut self, _message: MoveMessage) {
-//         self.board.update();
-//     }
-//
-//     //iced::run expects at least a state from view function
-//     pub fn view(&self) -> iced::Element<MoveMessage> {
-//         //button("something").into()
-//         self.board.get_view()
-//         //self::Board::get_view(self.board)
-//     }
-// }
 
 pub fn update(_board: &mut Board, _msg: MoveMessage) {}
 
 pub fn view(board: &Board) -> Element<MoveMessage> {
-    let mut col: Vec<iced::Element<MoveMessage>> = Vec::with_capacity(Board::WIDTH);
+    let mut col: Vec<Element<MoveMessage>> = Vec::with_capacity(Board::WIDTH);
     for y in 0..Board::WIDTH {
-        let mut v: Vec<iced::Element<MoveMessage>> = Vec::with_capacity(Board::WIDTH);
+        let mut v: Vec<Element<MoveMessage>> = Vec::with_capacity(Board::WIDTH);
         for x in 0..Board::WIDTH {
             v.push(
                 Button::new(match board.board_arr[map2d(&x, &y, &Board::WIDTH)] {
@@ -52,14 +27,14 @@ pub fn view(board: &Board) -> Element<MoveMessage> {
                 .into(),
             );
         }
-        col.push(iced::widget::Row::from_vec(v).into());
+        col.push(widget::Row::from_vec(v).into());
     }
-    iced::widget::Column::from_vec(col).into()
+    widget::Column::from_vec(col).into()
 }
 
-fn style_white(t: &Theme, s: button::Status) -> Style {
+fn style_white(_t: &Theme, _s: Status) -> Style {
     Style {
-        background: Option::from(Background::Color(if s == Status::Hovered {
+        background: Option::from(Background::Color(if _s == Status::Hovered {
             color!(250, 250, 250)
         } else {
             color!(216, 183, 159)
@@ -73,7 +48,7 @@ fn style_white(t: &Theme, s: button::Status) -> Style {
         shadow: Shadow::default(),
     }
 }
-fn style_black(t: &Theme, s: button::Status) -> Style {
+fn style_black(_t: &Theme, _s: Status) -> Style {
     Style {
         background: Option::from(Background::Color(color!(97, 61, 51))),
         text_color: Color::BLACK,

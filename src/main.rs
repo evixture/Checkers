@@ -6,6 +6,4 @@ pub mod window;
 fn main() -> iced::Result {
     //Board::new().print();
     iced::run("Hello, world!", window::update, window::view)
-    //CheckersWindow::update,
-    //CheckersWindow::view,
 }

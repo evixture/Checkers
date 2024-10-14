@@ -1,6 +1,5 @@
-use iced::widget::Column;
+use iced::widget::button;
 use iced::widget::Row;
-use iced::widget::{button, Container};
 use iced::Element;
 
 #[derive(Clone)]
@@ -29,10 +28,8 @@ pub fn map2d(x: &usize, y: &usize, width: &usize) -> usize {
     (y * width) + x
 }
 
-//#[derive(Clone)]
 pub struct Board {
     pub board_arr: Vec<Piece>,
-    //board_view: Vec<Element<MoveMessage>>, //Column<'a, MoveMessage>,
 }
 
 //manually implement default instead of #derive'ing
@@ -69,39 +66,21 @@ impl Board {
         }
         Board {
             board_arr: new_board_arr,
-            //board_view: new_board_vec, //Column::from_vec(new_board_vec),
         }
     }
 
-    // pub fn print(self) {
-    //     for y in 0..Self::WIDTH {
-    //         for x in 0..Self::WIDTH {
-    //             let mut str: String = String::new();
-    //             match self.board_arr[map2d(&x, &y, &Self::WIDTH)] {
-    //                 Piece::None => str.push_str("."),
-    //                 Piece::Black => str.push_str("B"),
-    //                 Piece::Red => str.push_str("R"),
-    //             }
-    //             print!("{}", str);
-    //         }
-    //         println!();
-    //     }
-    // }
-
-    // pub fn update(&self) {}
-
-    //     pub fn get_view(&self) -> Element<MoveMessage> {
-    //         let mut v: Vec<iced::Element<MoveMessage>> = Vec::with_capacity(Self::WIDTH);
-    //         for x in 0..Self::WIDTH {
-    //             let str: String;
-    //             match self.board_arr[x] {
-    //                 Piece::None => str = "X".to_string(),
-    //                 Piece::Red => str = "R".to_string(),
-    //                 Piece::Black => str = "B".to_string(),
-    //             };
-    //
-    //             v.push(button(str.as_str()).on_press(MoveMessage::Selection).into());
-    //         }
-    //         iced::widget::Row::from_vec(v).into()
-    //     }
+    pub fn print(self) {
+        for y in 0..Self::WIDTH {
+            for x in 0..Self::WIDTH {
+                let mut str: String = String::new();
+                match self.board_arr[map2d(&x, &y, &Self::WIDTH)] {
+                    Piece::None => str.push_str("."),
+                    Piece::Black => str.push_str("B"),
+                    Piece::Red => str.push_str("R"),
+                }
+                print!("{}", str);
+            }
+            println!();
+        }
+    }
 }
