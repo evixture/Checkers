@@ -1,11 +1,8 @@
-use crate::board::{map2d, piece_to_string, Board, MoveMessage, Piece};
-use iced::event::Status;
-use iced::theme::Palette;
+use crate::board::{map2d, Board, MoveMessage, Piece};
+use iced::border::Radius;
 use iced::widget::button::Style;
-use iced::widget::{button, Button, Container, Row};
-use iced::{color, theme, Background, Border, Color, Element, Length, Shadow, Theme};
-use std::ffi::CString;
-// iced::widget::button;
+use iced::widget::{button, Button};
+use iced::{color, Background, Border, Color, Element, Shadow, Theme};
 
 // #[derive(Default)]
 // pub struct CheckersWindow {
@@ -64,7 +61,11 @@ fn style_white(t: &Theme, s: button::Status) -> Style {
     Style {
         background: Option::from(Background::Color(color!(216, 183, 159))),
         text_color: Color::WHITE,
-        border: Border::default(),
+        border: Border {
+            color: color!(100, 100, 100),
+            width: 1f32,
+            radius: Radius::new(0),
+        },
         shadow: Shadow::default(),
     }
 }
@@ -72,7 +73,11 @@ fn style_black(t: &Theme, s: button::Status) -> Style {
     Style {
         background: Option::from(Background::Color(color!(97, 61, 51))),
         text_color: Color::BLACK,
-        border: Border::default(),
+        border: Border {
+            color: color!(100, 100, 100),
+            width: 1f32,
+            radius: Radius::new(0),
+        },
         shadow: Shadow::default(),
     }
 }
