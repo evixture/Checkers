@@ -1,8 +1,8 @@
 use crate::board::{map2d, Board, MoveMessage, Piece};
 use iced::border::Radius;
-use iced::widget::button::Style;
+use iced::widget::button::{Status, Style};
 use iced::widget::{button, Button};
-use iced::{color, Background, Border, Color, Element, Shadow, Theme};
+use iced::{color, widget, Background, Border, Color, Element, Shadow, Theme};
 
 // #[derive(Default)]
 // pub struct CheckersWindow {
@@ -38,9 +38,9 @@ pub fn view(board: &Board) -> Element<MoveMessage> {
         for x in 0..Board::WIDTH {
             v.push(
                 Button::new(match board.board_arr[map2d(&x, &y, &Board::WIDTH)] {
-                    Piece::None => "",
-                    Piece::Red => "R",
-                    Piece::Black => "B",
+                    Piece::None => iced::widget::image(""),
+                    Piece::Red => widget::image("assets/red.png"),
+                    Piece::Black => widget::image("assets/black.png"),
                 })
                 .width(100)
                 .height(100)
@@ -59,7 +59,11 @@ pub fn view(board: &Board) -> Element<MoveMessage> {
 
 fn style_white(t: &Theme, s: button::Status) -> Style {
     Style {
-        background: Option::from(Background::Color(color!(216, 183, 159))),
+        background: Option::from(Background::Color(if s == Status::Hovered {
+            color!(250, 250, 250)
+        } else {
+            color!(216, 183, 159)
+        })),
         text_color: Color::WHITE,
         border: Border {
             color: color!(100, 100, 100),
