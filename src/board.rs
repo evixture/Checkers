@@ -17,9 +17,19 @@ pub fn piece_to_string(piece: &Piece) -> String {
     }
 }
 
+#[derive(Clone, Debug, Default)]
+pub enum Turn {
+    #[default]
+    Start,
+    Red,
+    Black,
+    End,
+}
+
 #[derive(Clone, Debug)]
-pub enum MoveMessage {
-    Selection,
+pub enum BoardStateMsg {
+    Turn(Turn),
+    Selection(u8, u8),
     None,
 }
 
@@ -44,10 +54,10 @@ impl Board {
 
     pub fn new() -> Self {
         let mut new_board_arr: Vec<Piece> = Vec::with_capacity(Self::WIDTH);
-        let mut new_board_vec: Vec<Element<MoveMessage>> = Vec::with_capacity(Self::WIDTH);
+        let mut new_board_vec: Vec<Element<BoardStateMsg>> = Vec::with_capacity(Self::WIDTH);
 
         for y in 0..Self::WIDTH {
-            let mut row: Vec<Element<MoveMessage>> = Vec::with_capacity(Self::WIDTH);
+            let mut row: Vec<Element<BoardStateMsg>> = Vec::with_capacity(Self::WIDTH);
             for x in 0..Self::WIDTH {
                 if (y == 0 || y == 2) && (x % 2 == 0) {
                     new_board_arr.push(Piece::Black);
