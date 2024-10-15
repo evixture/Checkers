@@ -1,10 +1,16 @@
-use crate::board::{map2d, Board, MoveMessage, Piece};
 use iced::border::Radius;
 use iced::widget::button::{Status, Style};
 use iced::widget::Button;
 use iced::{color, widget, Background, Border, Color, Element, Shadow, Theme};
 
-pub fn update(_board: &mut Board, _msg: MoveMessage) {}
+use crate::board::{map2d, Board, MoveMessage, Piece};
+
+pub fn update(_board: &mut Board, _msg: MoveMessage) {
+    match _msg {
+        MoveMessage::Selection => println!("button pressed"),
+        MoveMessage::None => (),
+    }
+}
 
 pub fn view(board: &Board) -> Element<MoveMessage> {
     let mut col: Vec<Element<MoveMessage>> = Vec::with_capacity(Board::WIDTH);
@@ -17,6 +23,7 @@ pub fn view(board: &Board) -> Element<MoveMessage> {
                     Piece::Red => widget::image("assets/red.png"),
                     Piece::Black => widget::image("assets/black.png"),
                 })
+                .on_press(MoveMessage::Selection)
                 .width(100)
                 .height(100)
                 .style(if (y + x) % 2 == 0 {
