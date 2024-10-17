@@ -26,6 +26,10 @@ pub fn map2d(x: &usize, y: &usize, width: &usize) -> usize {
     (y * width) + x
 }
 
+pub fn map2d_coord(coord: &(usize, usize), width: &usize) -> usize {
+    (coord.1 * width) + coord.0
+}
+
 pub fn available_moves(b: &Board, sx: usize, sy: usize) -> Vec<(usize, usize)> {
     let mut ret: Vec<(usize, usize)> = vec![];
     // -1, -1           1, -1
@@ -65,6 +69,13 @@ pub fn available_moves(b: &Board, sx: usize, sy: usize) -> Vec<(usize, usize)> {
         ret.push((&sx + 1, &sy + 1));
     }
     ret
+}
+
+pub fn available_moves_coord(
+    b: &crate::board::Board,
+    s_coords: (usize, usize),
+) -> Vec<(usize, usize)> {
+    available_moves(b, s_coords.0, s_coords.1)
 }
 
 pub struct Board {

@@ -3,55 +3,43 @@ use iced::widget::button::{Status, Style};
 use iced::widget::Button;
 use iced::{color, widget, Background, Border, Color, Element, Shadow, Theme};
 
-use crate::board::{available_moves, map2d, Board, BoardStateMsg, Piece};
+use crate::board::{
+    available_moves, available_moves_coord, map2d, map2d_coord, Board, BoardStateMsg, Piece,
+};
 
 pub fn update(b: &mut Board, msg: BoardStateMsg) {
     match msg {
         BoardStateMsg::Selection(x, y) => {
             if b.first.is_some() && b.second.is_none() {
                 //deselect by selecting same spot
-                if match b.first {
-                    Some((a, b)) => a == x && b == y,
-                    _ => false,
-                } {
+                let bf = b.first.unwrap();
+                if b.first.unwrap() == (x, y) {
                     b.first = None;
-                    println!("deselected first");
+                    return;
+                    //println!("deselected first");
                 } else {
-                    //b.second = Option::from((x, y));
-                    println!("selected second");
-                    for av_move in available_moves(b, b.first.unwrap().0, b.first.unwrap().1) {
-                        println!("{:?} {}, {}", av_move, x, y);
-                        if av_move.0 == x && av_move.1 == y {
-                            println!("matched move");
+                    //println!("selected second");
+                    for av_move in available_moves_coord(b, bf) {
+                        //println!("{:?} {}, {}", av_move, x, y);
+                        if av_move == (x, y) {
+                            //println!("matched move");
                             match b.turn {
                                 Piece::Black => {
                                     b.turn = Piece::Red;
-                                    b.board_arr[map2d(
-                                        &b.first.unwrap().0,
-                                        &b.first.unwrap().1,
-                                        &Board::WIDTH,
-                                    )] = Piece::None;
-                                    b.board_arr[map2d(&av_move.0, &av_move.1, &Board::WIDTH)] =
+                                    b.board_arr[map2d_coord(&av_move, &Board::WIDTH)] =
                                         Piece::Black;
-                                    b.first = None;
-                                    b.second = None;
                                     println!("move black");
                                 }
                                 Piece::Red => {
                                     b.turn = Piece::Black;
-                                    b.board_arr[map2d(
-                                        &b.first.unwrap().0,
-                                        &b.first.unwrap().1,
-                                        &Board::WIDTH,
-                                    )] = Piece::None;
-                                    b.board_arr[map2d(&av_move.0, &av_move.1, &Board::WIDTH)] =
-                                        Piece::Red;
-                                    b.first = None;
-                                    b.second = None;
+                                    b.board_arr[map2d_coord(&av_move, &Board::WIDTH)] = Piece::Red;
                                     println!("move red");
                                 }
                                 _ => (),
                             }
+                            b.board_arr[map2d_coord(&bf, &Board::WIDTH)] = Piece::None;
+                            b.first = None;
+                            b.second = None;
                         }
                     }
                 }
