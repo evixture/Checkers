@@ -2,11 +2,16 @@ use iced::widget::button;
 use iced::widget::Row;
 use iced::Element;
 
-#[derive(Clone)]
+#[derive(Clone, Eq, PartialEq)]
 pub enum Piece {
     None,
     Red,
     Black,
+}
+
+#[derive(Clone, Debug)]
+pub enum BoardStateMsg {
+    Selection(usize, usize),
 }
 
 pub fn piece_to_string(piece: &Piece) -> String {
@@ -17,29 +22,52 @@ pub fn piece_to_string(piece: &Piece) -> String {
     }
 }
 
-#[derive(Clone, Debug, Default)]
-pub enum Turn {
-    #[default]
-    Start,
-    Red,
-    Black,
-    End,
-}
-
-#[derive(Clone, Debug)]
-pub enum BoardStateMsg {
-    Turn(Turn),
-    Selection(u8, u8),
-    None,
-}
-
-//for 8x8 grid
 pub fn map2d(x: &usize, y: &usize, width: &usize) -> usize {
     (y * width) + x
 }
 
+pub fn available_moves(b: &Board, sx: usize, sy: usize) -> Vec<(usize, usize)> {
+    let mut ret: Vec<(usize, usize)> = vec![];
+    //nw
+    if b.turn == Piece::Red
+        && sx >= 1
+        && sy >= 1
+        && b.board_arr[map2d(&(sx - 1), &(sy - 1), &Board::WIDTH)] == Piece::None
+    {
+        ret.push((sx - 1, sy - 1));
+    }
+    //ne
+    if b.turn == Piece::Red
+        && sx <= Board::WIDTH - 2
+        && sy >= 1
+        && b.board_arr[map2d(&(sx + 1), &(sy - 1), &Board::WIDTH)] == Piece::None
+    {
+        ret.push((sx + 1, sy - 1));
+    }
+    //sw
+    if b.turn == Piece::Black
+        && sx >= 1
+        && sy <= Board::WIDTH - 2
+        && b.board_arr[map2d(&(sx - 1), &(sy + 1), &Board::WIDTH)] == Piece::None
+    {
+        ret.push((sx - 1, sy + 1));
+    }
+    //se
+    if b.turn == Piece::Black
+        && sx <= Board::WIDTH - 2
+        && sy <= Board::WIDTH - 2
+        && b.board_arr[map2d(&(sx + 1), &(sy + 1), &Board::WIDTH)] == Piece::None
+    {
+        ret.push((sx + 1, sy + 1));
+    }
+    ret
+}
+
 pub struct Board {
     pub board_arr: Vec<Piece>,
+    pub first: Option<(usize, usize)>,
+    pub second: Option<(usize, usize)>,
+    pub turn: Piece,
 }
 
 //manually implement default instead of #derive'ing
@@ -76,6 +104,9 @@ impl Board {
         }
         Board {
             board_arr: new_board_arr,
+            first: None,
+            second: None,
+            turn: Piece::Black,
         }
     }
 
