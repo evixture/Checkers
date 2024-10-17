@@ -28,13 +28,17 @@ pub fn map2d(x: &usize, y: &usize, width: &usize) -> usize {
 
 pub fn available_moves(b: &Board, sx: usize, sy: usize) -> Vec<(usize, usize)> {
     let mut ret: Vec<(usize, usize)> = vec![];
+    // -1, -1           1, -1
+    //          sx, sy
+    // -1, 1            1, 1
+
     //nw
     if b.turn == Piece::Red
         && sx >= 1
         && sy >= 1
         && b.board_arr[map2d(&(sx - 1), &(sy - 1), &Board::WIDTH)] == Piece::None
     {
-        ret.push((sx - 1, sy - 1));
+        ret.push((&sx - 1, &sy - 1));
     }
     //ne
     if b.turn == Piece::Red
@@ -42,7 +46,7 @@ pub fn available_moves(b: &Board, sx: usize, sy: usize) -> Vec<(usize, usize)> {
         && sy >= 1
         && b.board_arr[map2d(&(sx + 1), &(sy - 1), &Board::WIDTH)] == Piece::None
     {
-        ret.push((sx + 1, sy - 1));
+        ret.push((&sx + 1, &sy - 1));
     }
     //sw
     if b.turn == Piece::Black
@@ -50,7 +54,7 @@ pub fn available_moves(b: &Board, sx: usize, sy: usize) -> Vec<(usize, usize)> {
         && sy <= Board::WIDTH - 2
         && b.board_arr[map2d(&(sx - 1), &(sy + 1), &Board::WIDTH)] == Piece::None
     {
-        ret.push((sx - 1, sy + 1));
+        ret.push((&sx - 1, &sy + 1));
     }
     //se
     if b.turn == Piece::Black
@@ -58,7 +62,7 @@ pub fn available_moves(b: &Board, sx: usize, sy: usize) -> Vec<(usize, usize)> {
         && sy <= Board::WIDTH - 2
         && b.board_arr[map2d(&(sx + 1), &(sy + 1), &Board::WIDTH)] == Piece::None
     {
-        ret.push((sx + 1, sy + 1));
+        ret.push((&sx + 1, &sy + 1));
     }
     ret
 }

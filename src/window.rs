@@ -15,10 +15,45 @@ pub fn update(b: &mut Board, msg: BoardStateMsg) {
                     _ => false,
                 } {
                     b.first = None;
-                    //println!("deselected first");
+                    println!("deselected first");
                 } else {
-                    b.second = Option::from((x, y));
-                    //println!("selected second");
+                    //b.second = Option::from((x, y));
+                    println!("selected second");
+                    for av_move in available_moves(b, b.first.unwrap().0, b.first.unwrap().1) {
+                        println!("{:?} {}, {}", av_move, x, y);
+                        if av_move.0 == x && av_move.1 == y {
+                            println!("matched move");
+                            match b.turn {
+                                Piece::Black => {
+                                    b.turn = Piece::Red;
+                                    b.board_arr[map2d(
+                                        &b.first.unwrap().0,
+                                        &b.first.unwrap().1,
+                                        &Board::WIDTH,
+                                    )] = Piece::None;
+                                    b.board_arr[map2d(&av_move.0, &av_move.1, &Board::WIDTH)] =
+                                        Piece::Black;
+                                    b.first = None;
+                                    b.second = None;
+                                    println!("move black");
+                                }
+                                Piece::Red => {
+                                    b.turn = Piece::Black;
+                                    b.board_arr[map2d(
+                                        &b.first.unwrap().0,
+                                        &b.first.unwrap().1,
+                                        &Board::WIDTH,
+                                    )] = Piece::None;
+                                    b.board_arr[map2d(&av_move.0, &av_move.1, &Board::WIDTH)] =
+                                        Piece::Red;
+                                    b.first = None;
+                                    b.second = None;
+                                    println!("move red");
+                                }
+                                _ => (),
+                            }
+                        }
+                    }
                 }
             } else if b.first.is_none() {
                 if b.board_arr[map2d(&x, &y, &Board::WIDTH)] == b.turn
