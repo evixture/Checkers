@@ -1,11 +1,8 @@
+use crate::board::*;
 use iced::border::Radius;
 use iced::widget::button::{Status, Style};
 use iced::widget::Button;
 use iced::{color, widget, Background, Border, Color, Element, Shadow, Theme};
-
-use crate::board::{
-    available_moves, available_moves_coord, map2d, map2d_coord, Board, BoardStateMsg, Piece,
-};
 
 pub fn update(b: &mut Board, msg: BoardStateMsg) {
     match msg {
@@ -70,19 +67,13 @@ pub fn view(board: &Board) -> Element<BoardStateMsg> {
                 .on_press(BoardStateMsg::Selection(x, y))
                 .width(100)
                 .height(100)
-                .style(
-                    if match board.first {
-                        //board.first.is_some() &&
-                        Some((a, b)) => a == x && b == y,
-                        _ => false,
-                    } {
-                        style_selected
-                    } else if (y + x) % 2 == 0 {
-                        style_white
-                    } else {
-                        style_black
-                    },
-                )
+                .style(if board.first.is_some() && board.first.unwrap() == (x, y) {
+                    style_selected
+                } else if (x + y) % 2 == 0 {
+                    style_white
+                } else {
+                    style_black
+                })
                 .into(),
             );
         }

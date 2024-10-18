@@ -36,38 +36,39 @@ pub fn available_moves(b: &Board, sx: usize, sy: usize) -> Vec<(usize, usize)> {
     //          sx, sy
     // -1, 1            1, 1
 
-    //nw
-    if b.turn == Piece::Red
-        && sx >= 1
-        && sy >= 1
-        && b.board_arr[map2d(&(sx - 1), &(sy - 1), &Board::WIDTH)] == Piece::None
-    {
-        ret.push((&sx - 1, &sy - 1));
+    if b.turn == Piece::Red {
+        //north-west
+        if sx >= 1
+            && sy >= 1
+            && b.board_arr[map2d(&(sx - 1), &(sy - 1), &Board::WIDTH)] == Piece::None
+        {
+            ret.push((&sx - 1, &sy - 1));
+        }
+        //north-east
+        if sx <= Board::WIDTH - 2
+            && sy >= 1
+            && b.board_arr[map2d(&(sx + 1), &(sy - 1), &Board::WIDTH)] == Piece::None
+        {
+            ret.push((&sx + 1, &sy - 1));
+        }
     }
-    //ne
-    if b.turn == Piece::Red
-        && sx <= Board::WIDTH - 2
-        && sy >= 1
-        && b.board_arr[map2d(&(sx + 1), &(sy - 1), &Board::WIDTH)] == Piece::None
-    {
-        ret.push((&sx + 1, &sy - 1));
+    if b.turn == Piece::Black {
+        //south-west
+        if sx >= 1
+            && sy <= Board::WIDTH - 2
+            && b.board_arr[map2d(&(sx - 1), &(sy + 1), &Board::WIDTH)] == Piece::None
+        {
+            ret.push((&sx - 1, &sy + 1));
+        }
+        //south-east
+        if sx <= Board::WIDTH - 2
+            && sy <= Board::WIDTH - 2
+            && b.board_arr[map2d(&(sx + 1), &(sy + 1), &Board::WIDTH)] == Piece::None
+        {
+            ret.push((&sx + 1, &sy + 1));
+        }
     }
-    //sw
-    if b.turn == Piece::Black
-        && sx >= 1
-        && sy <= Board::WIDTH - 2
-        && b.board_arr[map2d(&(sx - 1), &(sy + 1), &Board::WIDTH)] == Piece::None
-    {
-        ret.push((&sx - 1, &sy + 1));
-    }
-    //se
-    if b.turn == Piece::Black
-        && sx <= Board::WIDTH - 2
-        && sy <= Board::WIDTH - 2
-        && b.board_arr[map2d(&(sx + 1), &(sy + 1), &Board::WIDTH)] == Piece::None
-    {
-        ret.push((&sx + 1, &sy + 1));
-    }
+    //return
     ret
 }
 
