@@ -30,70 +30,98 @@ pub fn map2d_coord(coord: &(usize, usize)) -> usize {
     (coord.1 * Board::WIDTH) + coord.0
 }
 
+type MoveReturn = (Vec<(usize, usize)>, Vec<(usize, usize)>);
+
+//todo simplify, make search coords variables
+//todo make vec of 4 move options, for loop thru with match for piece type?
+//todo need to plan out best way to detect capture & move
 fn av_moves_rec(
     b: &Board,
     sx: &usize,
     sy: &usize,
     mut v: Vec<(usize, usize)>,
-) -> Vec<(usize, usize)> {
+    mut w: Vec<(usize, usize)>,
+    suspected_capture: bool,
+) -> MoveReturn {
     //todo verify bounds
     if sx < &1usize
         || sx >= &(Board::WIDTH - 1usize)
         || sy < &1usize
         || sy >= &(Board::WIDTH - 1usize)
     {
-        return v;
+        return (v, w);
     }
 
     //black
     return if b.turn == Piece::Black {
         //left path
+        //normal move and after jump
         if b.board_arr[map2d(&(sx - 1), &(sy + 1))] == Piece::None {
+            if suspected_capture {
+                w.push((sx + 0, sy + 0));
+                println!("capture at {}, {}", sx, sy);
+                //suspected_capture = false;
+            }
             v.push((sx - 1, sy + 1));
+            //possible jump
         } else if b.board_arr[map2d(&(sx - 1), &(sy + 1))] == Piece::Red {
-            //println!("can jump");
-            v.append(&mut av_moves_rec(b, &(sx - 1), &(sy + 1), v.clone()))
+            v.append(&mut av_moves_rec(b, &(sx - 1), &(sy + 1), v.clone(), w.clone(), true).0)
         }
         //right path
+        //normal move and after jump
         if b.board_arr[map2d(&(sx + 1), &(sy + 1))] == Piece::None {
-            //println!("right path");
+            if suspected_capture {
+                w.push((sx + 0, sy + 0));
+                println!("capture at {}, {}", sx, sy);
+                //suspected_capture = false;
+            }
             v.push((sx + 1, sy + 1));
+            //possible jump
         } else if b.board_arr[map2d(&(sx + 1), &(sy + 1))] == Piece::Red {
-            //println!("can jump");
-            v.append(&mut av_moves_rec(b, &(sx + 1), &(sy + 1), v.clone()));
+            v.append(&mut av_moves_rec(b, &(sx + 1), &(sy + 1), v.clone(), w.clone(), true).0);
         }
-        v
+        (v, w)
         //red
     } else if b.turn == Piece::Red {
         //left path
+        //normal move and after jump
         if b.board_arr[map2d(&(sx - 1), &(sy - 1))] == Piece::None {
+            if suspected_capture {
+                w.push((sx + 0, sy + 0));
+            }
             v.push((sx - 1, sy - 1));
+            //possible jump
         } else if b.board_arr[map2d(&(sx - 1), &(sy - 1))] == Piece::Black {
-            //println!("can jump");
-            v.append(&mut av_moves_rec(b, &(sx - 1), &(sy - 1), v.clone()));
+            v.append(&mut av_moves_rec(b, &(sx - 1), &(sy - 1), v.clone(), w.clone(), true).0);
         }
         //right path
+        //normal move and after jump
         if b.board_arr[map2d(&(sx + 1), &(sy - 1))] == Piece::None {
+            if suspected_capture {
+                w.push((sx + 0, sy + 0));
+            }
             v.push((sx + 1, sy - 1));
+            //possible jump
         } else if b.board_arr[map2d(&(sx + 1), &(sy - 1))] == Piece::Black {
-            //println!("can jump");
-            v.append(&mut av_moves_rec(b, &(sx + 1), &(sy - 1), v.clone()));
+            v.append(&mut av_moves_rec(b, &(sx + 1), &(sy - 1), v.clone(), w.clone(), true).0);
         }
-        v
+        (v, w)
     } else {
-        v
+        (v, w)
     };
 }
 
-pub fn available_moves(b: &Board, sx: usize, sy: usize) -> Vec<(usize, usize)> {
-    let v: Vec<(usize, usize)> = vec![];
-    let mut ret: Vec<(usize, usize)> = av_moves_rec(b, &sx, &sy, v);
-    ret.sort();
-    ret.dedup();
+pub fn available_moves(b: &Board, sx: usize, sy: usize) -> MoveReturn {
+    let v: MoveReturn = (vec![], vec![]);
+    let mut ret: MoveReturn = av_moves_rec(b, &sx, &sy, v.0, v.1, false);
+    ret.0.sort();
+    ret.1.sort();
+    ret.0.dedup();
+    ret.1.dedup();
     ret
 }
 
-pub fn available_moves_coord(b: &Board, s_coords: (usize, usize)) -> Vec<(usize, usize)> {
+pub fn available_moves_coord(b: &Board, s_coords: (usize, usize)) -> MoveReturn {
     available_moves(b, s_coords.0, s_coords.1)
 }
 
@@ -139,7 +167,6 @@ impl Board {
         Board {
             board_arr: new_board_arr,
             first: None,
-            //second: None,
             av_moves: vec![],
             turn: Piece::Black,
         }

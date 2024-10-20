@@ -16,7 +16,8 @@ pub fn update(b: &mut Board, msg: BoardStateMsg) {
                     //println!("deselected first");
                 } else {
                     //println!("selected second");
-                    for av_move in available_moves_coord(b, bf) {
+                    let v1 = available_moves_coord(b, bf);
+                    for av_move in v1.0 {
                         //println!("{:?} {}, {}", av_move, x, y);
                         if av_move == (x, y) {
                             //println!("matched move");
@@ -25,6 +26,9 @@ pub fn update(b: &mut Board, msg: BoardStateMsg) {
                                     b.turn = Piece::Red;
                                     b.board_arr[map2d_coord(&av_move)] = Piece::Black;
                                     println!("move black");
+                                    if !v1.1.is_empty() {
+                                        println!("{}, {}", v1.1[0].0, v1.1[0].1);
+                                    }
                                 }
                                 Piece::Red => {
                                     b.turn = Piece::Black;
@@ -39,7 +43,7 @@ pub fn update(b: &mut Board, msg: BoardStateMsg) {
                     }
                 }
             } else if b.first.is_none() {
-                if b.board_arr[map2d(&x, &y)] == b.turn && !available_moves(b, x, y).is_empty() {
+                if b.board_arr[map2d(&x, &y)] == b.turn && !available_moves(b, x, y).0.is_empty() {
                     b.first = Option::from((x, y));
                     //println!("selected first");
                 }
@@ -74,7 +78,11 @@ pub fn view(board: &Board) -> Element<BoardStateMsg> {
 fn get_space_color(b: &Board, y: usize, x: usize) -> fn(&Theme, Status) -> Style {
     if b.first.is_some() && b.first.unwrap() == (x, y) {
         style_selected
-    } else if b.first.is_some() && available_moves_coord(b, b.first.unwrap()).contains(&(x, y)) {
+    } else if b.first.is_some()
+        && available_moves_coord(b, b.first.unwrap())
+            .0
+            .contains(&(x, y))
+    {
         style_available
     } else if (x + y) % 2 == 0 {
         style_white
