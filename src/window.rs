@@ -7,7 +7,7 @@ use iced::{color, widget, Background, Border, Color, Element, Shadow, Theme};
 pub fn update(b: &mut Board, msg: BoardStateMsg) {
     match msg {
         BoardStateMsg::Selection(x, y) => {
-            if b.first.is_some() && b.second.is_none() {
+            if b.first.is_some() {
                 //deselect by selecting same spot
                 let bf = b.first.unwrap();
                 if b.first.unwrap() == (x, y) {
@@ -23,34 +23,29 @@ pub fn update(b: &mut Board, msg: BoardStateMsg) {
                             match b.turn {
                                 Piece::Black => {
                                     b.turn = Piece::Red;
-                                    b.board_arr[map2d_coord(&av_move, &Board::WIDTH)] =
-                                        Piece::Black;
+                                    b.board_arr[map2d_coord(&av_move)] = Piece::Black;
                                     println!("move black");
                                 }
                                 Piece::Red => {
                                     b.turn = Piece::Black;
-                                    b.board_arr[map2d_coord(&av_move, &Board::WIDTH)] = Piece::Red;
+                                    b.board_arr[map2d_coord(&av_move)] = Piece::Red;
                                     println!("move red");
                                 }
                                 _ => (),
                             }
-                            b.board_arr[map2d_coord(&bf, &Board::WIDTH)] = Piece::None;
+                            b.board_arr[map2d_coord(&bf)] = Piece::None;
                             b.first = None;
-                            b.second = None;
                         }
                     }
                 }
             } else if b.first.is_none() {
-                if b.board_arr[map2d(&x, &y, &Board::WIDTH)] == b.turn
-                    && !available_moves(b, x, y).is_empty()
-                {
+                if b.board_arr[map2d(&x, &y)] == b.turn && !available_moves(b, x, y).is_empty() {
                     b.first = Option::from((x, y));
                     //println!("selected first");
                 }
             }
         }
     }
-    //if msg == BoardStateMsg::Selection(a, b) {}
 }
 
 pub fn view(board: &Board) -> Element<BoardStateMsg> {
@@ -59,7 +54,7 @@ pub fn view(board: &Board) -> Element<BoardStateMsg> {
         let mut v: Vec<Element<BoardStateMsg>> = Vec::with_capacity(Board::WIDTH);
         for x in 0..Board::WIDTH {
             v.push(
-                Button::new(match board.board_arr[map2d(&x, &y, &Board::WIDTH)] {
+                Button::new(match board.board_arr[map2d(&x, &y)] {
                     Piece::None => iced::widget::image(""),
                     Piece::Red => widget::image("assets/red.png"),
                     Piece::Black => widget::image("assets/black.png"),
@@ -67,19 +62,25 @@ pub fn view(board: &Board) -> Element<BoardStateMsg> {
                 .on_press(BoardStateMsg::Selection(x, y))
                 .width(100)
                 .height(100)
-                .style(if board.first.is_some() && board.first.unwrap() == (x, y) {
-                    style_selected
-                } else if (x + y) % 2 == 0 {
-                    style_white
-                } else {
-                    style_black
-                })
+                .style(get_space_color(board, y, x))
                 .into(),
             );
         }
         col.push(widget::Row::from_vec(v).into());
     }
     widget::Column::from_vec(col).into()
+}
+
+fn get_space_color(b: &Board, y: usize, x: usize) -> fn(&Theme, Status) -> Style {
+    if b.first.is_some() && b.first.unwrap() == (x, y) {
+        style_selected
+    } else if b.first.is_some() && available_moves_coord(b, b.first.unwrap()).contains(&(x, y)) {
+        style_available
+    } else if (x + y) % 2 == 0 {
+        style_white
+    } else {
+        style_black
+    }
 }
 
 //todo random colors
@@ -89,7 +90,7 @@ fn style_white(_t: &Theme, _s: Status) -> Style {
             Status::Hovered => color!(250, 250, 250),
             _ => color!(216, 183, 159),
         })),
-        text_color: Color::WHITE,
+        text_color: Color::default(),
         border: Border {
             color: color!(100, 100, 100),
             width: 1f32,
@@ -105,7 +106,7 @@ fn style_black(_t: &Theme, _s: Status) -> Style {
             Status::Hovered => color!(250, 250, 250),
             _ => color!(97, 61, 51),
         })),
-        text_color: Color::BLACK,
+        text_color: Color::default(),
         border: Border {
             color: color!(100, 100, 100),
             width: 1f32,
@@ -121,9 +122,25 @@ fn style_selected(_t: &Theme, _s: Status) -> Style {
             Status::Hovered => color!(254, 226, 82),
             _ => color!(254, 226, 82),
         })),
-        text_color: Color::WHITE,
+        text_color: Color::default(),
         border: Border {
             color: color!(100, 100, 100),
+            width: 1f32,
+            radius: Radius::new(0),
+        },
+        shadow: Shadow::default(),
+    }
+}
+
+fn style_available(_t: &Theme, _s: Status) -> Style {
+    Style {
+        background: Option::from(Background::Color(match _s {
+            Status::Hovered => color!(254, 183, 82),
+            _ => color!(254, 226, 82),
+        })),
+        text_color: Color::default(),
+        border: Border {
+            color: color!(254, 183, 82),
             width: 1f32,
             radius: Radius::new(0),
         },

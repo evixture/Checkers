@@ -22,68 +22,86 @@ pub fn piece_to_string(piece: &Piece) -> String {
     }
 }
 
-pub fn map2d(x: &usize, y: &usize, width: &usize) -> usize {
-    (y * width) + x
+pub fn map2d(x: &usize, y: &usize) -> usize {
+    (y * Board::WIDTH) + x
 }
 
-pub fn map2d_coord(coord: &(usize, usize), width: &usize) -> usize {
-    (coord.1 * width) + coord.0
+pub fn map2d_coord(coord: &(usize, usize)) -> usize {
+    (coord.1 * Board::WIDTH) + coord.0
+}
+
+fn av_moves_rec(
+    b: &Board,
+    sx: &usize,
+    sy: &usize,
+    mut v: Vec<(usize, usize)>,
+) -> Vec<(usize, usize)> {
+    //todo verify bounds
+    if sx < &1usize
+        || sx >= &(Board::WIDTH - 1usize)
+        || sy < &1usize
+        || sy >= &(Board::WIDTH - 1usize)
+    {
+        return v;
+    }
+
+    //black
+    return if b.turn == Piece::Black {
+        //left path
+        if b.board_arr[map2d(&(sx - 1), &(sy + 1))] == Piece::None {
+            v.push((sx - 1, sy + 1));
+        } else if b.board_arr[map2d(&(sx - 1), &(sy + 1))] == Piece::Red {
+            //println!("can jump");
+            v.append(&mut av_moves_rec(b, &(sx - 1), &(sy + 1), v.clone()))
+        }
+        //right path
+        if b.board_arr[map2d(&(sx + 1), &(sy + 1))] == Piece::None {
+            //println!("right path");
+            v.push((sx + 1, sy + 1));
+        } else if b.board_arr[map2d(&(sx + 1), &(sy + 1))] == Piece::Red {
+            //println!("can jump");
+            v.append(&mut av_moves_rec(b, &(sx + 1), &(sy + 1), v.clone()));
+        }
+        v
+        //red
+    } else if b.turn == Piece::Red {
+        //left path
+        if b.board_arr[map2d(&(sx - 1), &(sy - 1))] == Piece::None {
+            v.push((sx - 1, sy - 1));
+        } else if b.board_arr[map2d(&(sx - 1), &(sy - 1))] == Piece::Black {
+            //println!("can jump");
+            v.append(&mut av_moves_rec(b, &(sx - 1), &(sy - 1), v.clone()));
+        }
+        //right path
+        if b.board_arr[map2d(&(sx + 1), &(sy - 1))] == Piece::None {
+            v.push((sx + 1, sy - 1));
+        } else if b.board_arr[map2d(&(sx + 1), &(sy - 1))] == Piece::Black {
+            //println!("can jump");
+            v.append(&mut av_moves_rec(b, &(sx + 1), &(sy - 1), v.clone()));
+        }
+        v
+    } else {
+        v
+    };
 }
 
 pub fn available_moves(b: &Board, sx: usize, sy: usize) -> Vec<(usize, usize)> {
-    let mut ret: Vec<(usize, usize)> = vec![];
-    // -1, -1           1, -1
-    //          sx, sy
-    // -1, 1            1, 1
-
-    if b.turn == Piece::Red {
-        //north-west
-        if sx >= 1
-            && sy >= 1
-            && b.board_arr[map2d(&(sx - 1), &(sy - 1), &Board::WIDTH)] == Piece::None
-        {
-            ret.push((&sx - 1, &sy - 1));
-        }
-        //north-east
-        if sx <= Board::WIDTH - 2
-            && sy >= 1
-            && b.board_arr[map2d(&(sx + 1), &(sy - 1), &Board::WIDTH)] == Piece::None
-        {
-            ret.push((&sx + 1, &sy - 1));
-        }
-    }
-    if b.turn == Piece::Black {
-        //south-west
-        if sx >= 1
-            && sy <= Board::WIDTH - 2
-            && b.board_arr[map2d(&(sx - 1), &(sy + 1), &Board::WIDTH)] == Piece::None
-        {
-            ret.push((&sx - 1, &sy + 1));
-        }
-        //south-east
-        if sx <= Board::WIDTH - 2
-            && sy <= Board::WIDTH - 2
-            && b.board_arr[map2d(&(sx + 1), &(sy + 1), &Board::WIDTH)] == Piece::None
-        {
-            ret.push((&sx + 1, &sy + 1));
-        }
-    }
-    //return
+    let v: Vec<(usize, usize)> = vec![];
+    let mut ret: Vec<(usize, usize)> = av_moves_rec(b, &sx, &sy, v);
+    ret.sort();
+    ret.dedup();
     ret
 }
 
-pub fn available_moves_coord(
-    b: &crate::board::Board,
-    s_coords: (usize, usize),
-) -> Vec<(usize, usize)> {
+pub fn available_moves_coord(b: &Board, s_coords: (usize, usize)) -> Vec<(usize, usize)> {
     available_moves(b, s_coords.0, s_coords.1)
 }
 
 pub struct Board {
     pub board_arr: Vec<Piece>,
     pub first: Option<(usize, usize)>,
-    pub second: Option<(usize, usize)>,
     pub turn: Piece,
+    pub av_moves: Vec<(usize, usize)>,
 }
 
 //manually implement default instead of #derive'ing
@@ -121,7 +139,8 @@ impl Board {
         Board {
             board_arr: new_board_arr,
             first: None,
-            second: None,
+            //second: None,
+            av_moves: vec![],
             turn: Piece::Black,
         }
     }
@@ -130,7 +149,7 @@ impl Board {
         for y in 0..Self::WIDTH {
             for x in 0..Self::WIDTH {
                 let mut str: String = String::new();
-                match self.board_arr[map2d(&x, &y, &Self::WIDTH)] {
+                match self.board_arr[map2d(&x, &y)] {
                     Piece::None => str.push_str("."),
                     Piece::Black => str.push_str("B"),
                     Piece::Red => str.push_str("R"),
