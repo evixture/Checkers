@@ -11,7 +11,7 @@ pub enum Piece {
 
 #[derive(Clone, Debug)]
 pub enum BoardStateMsg {
-    Selection(usize, usize),
+    Selection(i16, i16),
 }
 
 pub fn piece_to_string(piece: &Piece) -> String {
@@ -22,48 +22,42 @@ pub fn piece_to_string(piece: &Piece) -> String {
     }
 }
 
-pub fn map2d(x: &usize, y: &usize) -> usize {
-    (y * Board::WIDTH) + x
+pub fn map2d(x: &i16, y: &i16) -> usize {
+    ((y * Board::WIDTH as i16) + x) as usize
 }
 
-pub fn map2d_coord(coord: &(usize, usize)) -> usize {
-    (coord.1 * Board::WIDTH) + coord.0
+pub fn map2d_coord(coord: &(i16, i16)) -> usize {
+    ((coord.1 * Board::WIDTH as i16) + coord.0) as usize
 }
 
-type MoveReturn = (Vec<(usize, usize)>, Vec<(usize, usize)>);
+type MoveReturn = (Vec<(i16, i16)>, Vec<(i16, i16)>);
 
 //todo simplify, make search coords variables
 //todo make vec of 4 move options, for loop thru with match for piece type?
 //todo need to plan out best way to detect capture & move
-fn av_moves_rec(
-    b: &Board,
-    sx: &usize,
-    sy: &usize,
-    mut v: Vec<(usize, usize)>,
-    mut w: Vec<(usize, usize)>,
-    suspected_capture: bool,
-) -> MoveReturn {
-    let mut pm: Vec<(usize, usize)> = vec![];
-    let mut retm: Vec<(usize, usize)> = vec![];
-    let mut retc: Vec<(usize, usize)> = vec![];
+fn av_moves_rec(b: &Board, sx: &i16, sy: &i16, mr: MoveReturn) -> MoveReturn {
+    let mut pm: Vec<(i16, i16)> = vec![];
+    //let mut retm: Vec<(usize, usize)> = vec![];
+    //let mut retc: Vec<(usize, usize)> = vec![];
+    let mut ret: MoveReturn = mr.clone();
 
     match b.turn {
         Piece::Black => {
-            if (sy < &(Board::WIDTH - 1)) {
-                if sx >= &1usize {
+            if sy < &(Board::WIDTH as i16 - 1) {
+                if sx >= &1 {
                     pm.push((sx - 1, sy + 1));
                 }
-                if sx < &(Board::WIDTH - 1) {
+                if sx < &(Board::WIDTH as i16 - 1) {
                     pm.push((sx + 1, sy + 1));
                 }
             }
         }
         Piece::Red => {
-            if (sy >= &1usize) {
-                if sx >= &1usize {
+            if sy >= &1 {
+                if sx >= &1 {
                     pm.push((sx - 1, sy - 1));
                 }
-                if sx < &(Board::WIDTH - 1) {
+                if sx < &(Board::WIDTH as i16 - 1) {
                     pm.push((sx + 1, sy - 1));
                 }
             }
@@ -71,17 +65,36 @@ fn av_moves_rec(
         _ => (),
     }
 
-    for m in pm {
-        if b.board_arr[map2d_coord(&m)] == Piece::None {
-            retm.push(m.clone());
-        } else if b.board_arr[map2d_coord(&m)] == Piece::Black {
-            if b.board_arr[map2d_coord(&(m.0 + 1, m.1 + 1))] == Piece::None {
-                retm.push((m.0 + 1, m.1 + 1));
-                retc.push(m.clone());
+    for target in pm {
+        if b.board_arr[map2d_coord(&target)] == Piece::None {
+            //move
+            ret.0.push(target.clone());
+        } else if b.board_arr[map2d_coord(&target)] == Piece::Red {
+            //todo check bounds
+            // println!(
+            //     "{}, {}",
+            //     (target.0 - sx) + target.0,
+            //     (target.1 - sy) + target.1
+            // );
+            let new_target = ((target.0 - sx) + target.0, (target.1 - sy) + target.1);
+            //check bounds
+            if new_target.0 >= 0
+                && new_target.0 < Board::WIDTH as i16
+                && new_target.1 >= 0
+                && new_target.1 < Board::WIDTH as i16
+            {
+                if b.board_arr[map2d_coord(&new_target)] == Piece::None {
+                    ret.0.push(new_target.clone());
+                    ret.1.push(target.clone());
+                    let mut t: MoveReturn =
+                        av_moves_rec(b, &new_target.0, &new_target.1, ret.clone());
+                    ret.0.append(&mut t.0);
+                    ret.1.append(&mut t.1);
+                }
             }
         }
     }
-    (retm, retc)
+    ret
 }
 
 // //todo verify bounds
@@ -151,9 +164,9 @@ fn av_moves_rec(
 // (v, w)
 // };
 
-pub fn available_moves(b: &Board, sx: usize, sy: usize) -> MoveReturn {
+pub fn available_moves(b: &Board, sx: i16, sy: i16) -> MoveReturn {
     let v: MoveReturn = (vec![], vec![]);
-    let mut ret: MoveReturn = av_moves_rec(b, &sx, &sy, v.0, v.1, false);
+    let mut ret: MoveReturn = av_moves_rec(b, &sx, &sy, v);
     ret.0.sort();
     ret.1.sort();
     ret.0.dedup();
@@ -161,15 +174,15 @@ pub fn available_moves(b: &Board, sx: usize, sy: usize) -> MoveReturn {
     ret
 }
 
-pub fn available_moves_coord(b: &Board, s_coords: (usize, usize)) -> MoveReturn {
+pub fn available_moves_coord(b: &Board, s_coords: (i16, i16)) -> MoveReturn {
     available_moves(b, s_coords.0, s_coords.1)
 }
 
 pub struct Board {
     pub board_arr: Vec<Piece>,
-    pub first: Option<(usize, usize)>,
+    pub first: Option<(i16, i16)>,
     pub turn: Piece,
-    pub av_moves: Vec<(usize, usize)>,
+    pub av_moves: Vec<(i16, i16)>,
 }
 
 //manually implement default instead of #derive'ing
@@ -216,7 +229,7 @@ impl Board {
         for y in 0..Self::WIDTH {
             for x in 0..Self::WIDTH {
                 let mut str: String = String::new();
-                match self.board_arr[map2d(&x, &y)] {
+                match self.board_arr[map2d(&(x as i16), &(y as i16))] {
                     Piece::None => str.push_str("."),
                     Piece::Black => str.push_str("B"),
                     Piece::Red => str.push_str("R"),

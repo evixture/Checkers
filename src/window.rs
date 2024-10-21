@@ -27,7 +27,8 @@ pub fn update(b: &mut Board, msg: BoardStateMsg) {
                                     b.board_arr[map2d_coord(&av_move)] = Piece::Black;
                                     println!("move black");
                                     if !v1.1.is_empty() {
-                                        println!("{}, {}", v1.1[0].0, v1.1[0].1);
+                                        println!("CAPTURE at {}, {}", v1.1[0].0, v1.1[0].1);
+                                        b.board_arr[map2d_coord(&v1.1[0])] = Piece::None;
                                     }
                                 }
                                 Piece::Red => {
@@ -58,15 +59,15 @@ pub fn view(board: &Board) -> Element<BoardStateMsg> {
         let mut v: Vec<Element<BoardStateMsg>> = Vec::with_capacity(Board::WIDTH);
         for x in 0..Board::WIDTH {
             v.push(
-                Button::new(match board.board_arr[map2d(&x, &y)] {
+                Button::new(match board.board_arr[map2d(&(x as i16), &(y as i16))] {
                     Piece::None => iced::widget::image(""),
                     Piece::Red => widget::image("assets/red.png"),
                     Piece::Black => widget::image("assets/black.png"),
                 })
-                .on_press(BoardStateMsg::Selection(x, y))
+                .on_press(BoardStateMsg::Selection(x as i16, y as i16))
                 .width(100)
                 .height(100)
-                .style(get_space_color(board, y, x))
+                .style(get_space_color(board, y as i16, x as i16))
                 .into(),
             );
         }
@@ -75,7 +76,7 @@ pub fn view(board: &Board) -> Element<BoardStateMsg> {
     widget::Column::from_vec(col).into()
 }
 
-fn get_space_color(b: &Board, y: usize, x: usize) -> fn(&Theme, Status) -> Style {
+fn get_space_color(b: &Board, y: i16, x: i16) -> fn(&Theme, Status) -> Style {
     if b.first.is_some() && b.first.unwrap() == (x, y) {
         style_selected
     } else if b.first.is_some()
