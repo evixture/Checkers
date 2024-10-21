@@ -43,73 +43,113 @@ fn av_moves_rec(
     mut w: Vec<(usize, usize)>,
     suspected_capture: bool,
 ) -> MoveReturn {
-    //todo verify bounds
-    if sx < &1usize
-        || sx >= &(Board::WIDTH - 1usize)
-        || sy < &1usize
-        || sy >= &(Board::WIDTH - 1usize)
-    {
-        return (v, w);
+    let mut pm: Vec<(usize, usize)> = vec![];
+    let mut retm: Vec<(usize, usize)> = vec![];
+    let mut retc: Vec<(usize, usize)> = vec![];
+
+    match b.turn {
+        Piece::Black => {
+            if (sy < &(Board::WIDTH - 1)) {
+                if sx >= &1usize {
+                    pm.push((sx - 1, sy + 1));
+                }
+                if sx < &(Board::WIDTH - 1) {
+                    pm.push((sx + 1, sy + 1));
+                }
+            }
+        }
+        Piece::Red => {
+            if (sy >= &1usize) {
+                if sx >= &1usize {
+                    pm.push((sx - 1, sy - 1));
+                }
+                if sx < &(Board::WIDTH - 1) {
+                    pm.push((sx + 1, sy - 1));
+                }
+            }
+        }
+        _ => (),
     }
 
-    //black
-    return if b.turn == Piece::Black {
-        //left path
-        //normal move and after jump
-        if b.board_arr[map2d(&(sx - 1), &(sy + 1))] == Piece::None {
-            if suspected_capture {
-                w.push((sx + 0, sy + 0));
-                println!("capture at {}, {}", sx, sy);
-                //suspected_capture = false;
+    for m in pm {
+        if b.board_arr[map2d_coord(&m)] == Piece::None {
+            retm.push(m.clone());
+        } else if b.board_arr[map2d_coord(&m)] == Piece::Black {
+            if b.board_arr[map2d_coord(&(m.0 + 1, m.1 + 1))] == Piece::None {
+                retm.push((m.0 + 1, m.1 + 1));
+                retc.push(m.clone());
             }
-            v.push((sx - 1, sy + 1));
-            //possible jump
-        } else if b.board_arr[map2d(&(sx - 1), &(sy + 1))] == Piece::Red {
-            v.append(&mut av_moves_rec(b, &(sx - 1), &(sy + 1), v.clone(), w.clone(), true).0)
         }
-        //right path
-        //normal move and after jump
-        if b.board_arr[map2d(&(sx + 1), &(sy + 1))] == Piece::None {
-            if suspected_capture {
-                w.push((sx + 0, sy + 0));
-                println!("capture at {}, {}", sx, sy);
-                //suspected_capture = false;
-            }
-            v.push((sx + 1, sy + 1));
-            //possible jump
-        } else if b.board_arr[map2d(&(sx + 1), &(sy + 1))] == Piece::Red {
-            v.append(&mut av_moves_rec(b, &(sx + 1), &(sy + 1), v.clone(), w.clone(), true).0);
-        }
-        (v, w)
-        //red
-    } else if b.turn == Piece::Red {
-        //left path
-        //normal move and after jump
-        if b.board_arr[map2d(&(sx - 1), &(sy - 1))] == Piece::None {
-            if suspected_capture {
-                w.push((sx + 0, sy + 0));
-            }
-            v.push((sx - 1, sy - 1));
-            //possible jump
-        } else if b.board_arr[map2d(&(sx - 1), &(sy - 1))] == Piece::Black {
-            v.append(&mut av_moves_rec(b, &(sx - 1), &(sy - 1), v.clone(), w.clone(), true).0);
-        }
-        //right path
-        //normal move and after jump
-        if b.board_arr[map2d(&(sx + 1), &(sy - 1))] == Piece::None {
-            if suspected_capture {
-                w.push((sx + 0, sy + 0));
-            }
-            v.push((sx + 1, sy - 1));
-            //possible jump
-        } else if b.board_arr[map2d(&(sx + 1), &(sy - 1))] == Piece::Black {
-            v.append(&mut av_moves_rec(b, &(sx + 1), &(sy - 1), v.clone(), w.clone(), true).0);
-        }
-        (v, w)
-    } else {
-        (v, w)
-    };
+    }
+    (retm, retc)
 }
+
+// //todo verify bounds
+// if sx < &1usize
+// || sx >= &(Board::WIDTH - 1usize)
+// || sy < &1usize
+// || sy >= &(Board::WIDTH - 1usize)
+// {
+// return (v, w);
+// }
+//
+// //black
+// return if b.turn == Piece::Black {
+// //left path
+// //normal move and after jump
+// if b.board_arr[map2d(&(sx - 1), &(sy + 1))] == Piece::None {
+// if suspected_capture {
+// w.push((sx + 0, sy + 0));
+// println!("capture at {}, {}", sx, sy);
+// //suspected_capture = false;
+// }
+// v.push((sx - 1, sy + 1));
+// //possible jump
+// } else if b.board_arr[map2d(&(sx - 1), &(sy + 1))] == Piece::Red {
+// v.append(&mut av_moves_rec(b, &(sx - 1), &(sy + 1), v.clone(), w.clone(), true).0)
+// }
+// //right path
+// //normal move and after jump
+// if b.board_arr[map2d(&(sx + 1), &(sy + 1))] == Piece::None {
+// if suspected_capture {
+// w.push((sx + 0, sy + 0));
+// println!("capture at {}, {}", sx, sy);
+// //suspected_capture = false;
+// }
+// v.push((sx + 1, sy + 1));
+// //possible jump
+// } else if b.board_arr[map2d(&(sx + 1), &(sy + 1))] == Piece::Red {
+// v.append(&mut av_moves_rec(b, &(sx + 1), &(sy + 1), v.clone(), w.clone(), true).0);
+// }
+// (v, w)
+// //red
+// } else if b.turn == Piece::Red {
+// //left path
+// //normal move and after jump
+// if b.board_arr[map2d(&(sx - 1), &(sy - 1))] == Piece::None {
+// if suspected_capture {
+// w.push((sx + 0, sy + 0));
+// }
+// v.push((sx - 1, sy - 1));
+// //possible jump
+// } else if b.board_arr[map2d(&(sx - 1), &(sy - 1))] == Piece::Black {
+// v.append(&mut av_moves_rec(b, &(sx - 1), &(sy - 1), v.clone(), w.clone(), true).0);
+// }
+// //right path
+// //normal move and after jump
+// if b.board_arr[map2d(&(sx + 1), &(sy - 1))] == Piece::None {
+// if suspected_capture {
+// w.push((sx + 0, sy + 0));
+// }
+// v.push((sx + 1, sy - 1));
+// //possible jump
+// } else if b.board_arr[map2d(&(sx + 1), &(sy - 1))] == Piece::Black {
+// v.append(&mut av_moves_rec(b, &(sx + 1), &(sy - 1), v.clone(), w.clone(), true).0);
+// }
+// (v, w)
+// } else {
+// (v, w)
+// };
 
 pub fn available_moves(b: &Board, sx: usize, sy: usize) -> MoveReturn {
     let v: MoveReturn = (vec![], vec![]);
