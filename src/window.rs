@@ -26,10 +26,6 @@ pub fn update(b: &mut Board, msg: BoardStateMsg) {
                                     b.turn = Piece::Red;
                                     b.board_arr[map2d_coord(&av_move)] = Piece::Black;
                                     println!("move black");
-                                    if !v1.1.is_empty() {
-                                        println!("CAPTURE at {}, {}", v1.1[0].0, v1.1[0].1);
-                                        b.board_arr[map2d_coord(&v1.1[0])] = Piece::None;
-                                    }
                                 }
                                 Piece::Red => {
                                     b.turn = Piece::Black;
@@ -37,6 +33,10 @@ pub fn update(b: &mut Board, msg: BoardStateMsg) {
                                     println!("move red");
                                 }
                                 _ => (),
+                            }
+                            //remove all captured
+                            for coord in &v1.1 {
+                                b.board_arr[map2d_coord(&coord)] = Piece::None;
                             }
                             b.board_arr[map2d_coord(&bf)] = Piece::None;
                             b.first = None;

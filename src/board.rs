@@ -30,59 +30,49 @@ pub fn map2d_coord(coord: &(i16, i16)) -> usize {
     ((coord.1 * Board::WIDTH as i16) + coord.0) as usize
 }
 
+pub fn coord_is_in_bounds(coord: &(i16, i16)) -> bool {
+    coord.0 >= 0 && coord.0 < Board::WIDTH as i16 && coord.1 >= 0 && coord.1 < Board::WIDTH as i16
+}
+
 type MoveReturn = (Vec<(i16, i16)>, Vec<(i16, i16)>);
 
-//todo simplify, make search coords variables
-//todo make vec of 4 move options, for loop thru with match for piece type?
-//todo need to plan out best way to detect capture & move
 fn av_moves_rec(b: &Board, sx: &i16, sy: &i16, mr: MoveReturn) -> MoveReturn {
-    let mut pm: Vec<(i16, i16)> = vec![];
-    //let mut retm: Vec<(usize, usize)> = vec![];
-    //let mut retc: Vec<(usize, usize)> = vec![];
+    let mut pm_list: Vec<(i16, i16)> = vec![];
     let mut ret: MoveReturn = mr.clone();
 
     match b.turn {
         Piece::Black => {
-            if sy < &(Board::WIDTH as i16 - 1) {
-                if sx >= &1 {
-                    pm.push((sx - 1, sy + 1));
-                }
-                if sx < &(Board::WIDTH as i16 - 1) {
-                    pm.push((sx + 1, sy + 1));
-                }
+            if coord_is_in_bounds(&(sx - 1, sy + 1)) {
+                pm_list.push((sx - 1, sy + 1));
+            }
+            if coord_is_in_bounds(&(sx + 1, sy + 1)) {
+                pm_list.push((sx + 1, sy + 1));
             }
         }
         Piece::Red => {
-            if sy >= &1 {
-                if sx >= &1 {
-                    pm.push((sx - 1, sy - 1));
-                }
-                if sx < &(Board::WIDTH as i16 - 1) {
-                    pm.push((sx + 1, sy - 1));
-                }
+            if coord_is_in_bounds(&(sx - 1, sy - 1)) {
+                pm_list.push((sx - 1, sy - 1));
+            }
+            if coord_is_in_bounds(&(sx + 1, sy - 1)) {
+                pm_list.push((sx + 1, sy - 1));
             }
         }
         _ => (),
     }
 
-    for target in pm {
-        if b.board_arr[map2d_coord(&target)] == Piece::None {
+    for target in pm_list {
+        //check capture list to prevent move if jump captures
+        if b.board_arr[map2d_coord(&target)] == Piece::None && ret.1.is_empty() {
             //move
             ret.0.push(target.clone());
-        } else if b.board_arr[map2d_coord(&target)] == Piece::Red {
-            //todo check bounds
+        } else if b.board_arr[map2d_coord(&target)] != b.turn {
             // println!(
             //     "{}, {}",
             //     (target.0 - sx) + target.0,
             //     (target.1 - sy) + target.1
             // );
             let new_target = ((target.0 - sx) + target.0, (target.1 - sy) + target.1);
-            //check bounds
-            if new_target.0 >= 0
-                && new_target.0 < Board::WIDTH as i16
-                && new_target.1 >= 0
-                && new_target.1 < Board::WIDTH as i16
-            {
+            if coord_is_in_bounds(&new_target) {
                 if b.board_arr[map2d_coord(&new_target)] == Piece::None {
                     ret.0.push(new_target.clone());
                     ret.1.push(target.clone());
@@ -96,73 +86,6 @@ fn av_moves_rec(b: &Board, sx: &i16, sy: &i16, mr: MoveReturn) -> MoveReturn {
     }
     ret
 }
-
-// //todo verify bounds
-// if sx < &1usize
-// || sx >= &(Board::WIDTH - 1usize)
-// || sy < &1usize
-// || sy >= &(Board::WIDTH - 1usize)
-// {
-// return (v, w);
-// }
-//
-// //black
-// return if b.turn == Piece::Black {
-// //left path
-// //normal move and after jump
-// if b.board_arr[map2d(&(sx - 1), &(sy + 1))] == Piece::None {
-// if suspected_capture {
-// w.push((sx + 0, sy + 0));
-// println!("capture at {}, {}", sx, sy);
-// //suspected_capture = false;
-// }
-// v.push((sx - 1, sy + 1));
-// //possible jump
-// } else if b.board_arr[map2d(&(sx - 1), &(sy + 1))] == Piece::Red {
-// v.append(&mut av_moves_rec(b, &(sx - 1), &(sy + 1), v.clone(), w.clone(), true).0)
-// }
-// //right path
-// //normal move and after jump
-// if b.board_arr[map2d(&(sx + 1), &(sy + 1))] == Piece::None {
-// if suspected_capture {
-// w.push((sx + 0, sy + 0));
-// println!("capture at {}, {}", sx, sy);
-// //suspected_capture = false;
-// }
-// v.push((sx + 1, sy + 1));
-// //possible jump
-// } else if b.board_arr[map2d(&(sx + 1), &(sy + 1))] == Piece::Red {
-// v.append(&mut av_moves_rec(b, &(sx + 1), &(sy + 1), v.clone(), w.clone(), true).0);
-// }
-// (v, w)
-// //red
-// } else if b.turn == Piece::Red {
-// //left path
-// //normal move and after jump
-// if b.board_arr[map2d(&(sx - 1), &(sy - 1))] == Piece::None {
-// if suspected_capture {
-// w.push((sx + 0, sy + 0));
-// }
-// v.push((sx - 1, sy - 1));
-// //possible jump
-// } else if b.board_arr[map2d(&(sx - 1), &(sy - 1))] == Piece::Black {
-// v.append(&mut av_moves_rec(b, &(sx - 1), &(sy - 1), v.clone(), w.clone(), true).0);
-// }
-// //right path
-// //normal move and after jump
-// if b.board_arr[map2d(&(sx + 1), &(sy - 1))] == Piece::None {
-// if suspected_capture {
-// w.push((sx + 0, sy + 0));
-// }
-// v.push((sx + 1, sy - 1));
-// //possible jump
-// } else if b.board_arr[map2d(&(sx + 1), &(sy - 1))] == Piece::Black {
-// v.append(&mut av_moves_rec(b, &(sx + 1), &(sy - 1), v.clone(), w.clone(), true).0);
-// }
-// (v, w)
-// } else {
-// (v, w)
-// };
 
 pub fn available_moves(b: &Board, sx: i16, sy: i16) -> MoveReturn {
     let v: MoveReturn = (vec![], vec![]);
@@ -183,6 +106,7 @@ pub struct Board {
     pub first: Option<(i16, i16)>,
     pub turn: Piece,
     pub av_moves: Vec<(i16, i16)>,
+    pub game_over: bool,
 }
 
 //manually implement default instead of #derive'ing
@@ -222,6 +146,39 @@ impl Board {
             first: None,
             av_moves: vec![],
             turn: Piece::Black,
+            game_over: false,
+        }
+    }
+
+    pub fn check_game_win(&mut self) {
+        let mut has_red = false;
+        let mut has_black = false;
+        for p in &self.board_arr {
+            if p == &Piece::Red {
+                has_red = true;
+            }
+            if p == &Piece::Black {
+                has_black = true;
+            }
+        }
+        //black win
+        if !has_red {
+            self.game_over = true;
+            self.turn = Piece::None;
+            for y in 0..Self::WIDTH {
+                for x in 0..Self::WIDTH {
+                    self.board_arr[map2d(&(x as i16), &(y as i16))] = Piece::Black;
+                }
+            }
+        }
+        if !has_black {
+            self.game_over = true;
+            self.turn = Piece::None;
+            for y in 0..Self::WIDTH {
+                for x in 0..Self::WIDTH {
+                    self.board_arr[map2d(&(x as i16), &(y as i16))] = Piece::Red;
+                }
+            }
         }
     }
 
