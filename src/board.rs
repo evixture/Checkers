@@ -1,5 +1,4 @@
 use iced::widget::button;
-use iced::widget::shader::wgpu::naga::back::msl::sampler::Coord;
 use iced::widget::Row;
 use iced::Element;
 
@@ -23,10 +22,17 @@ pub fn piece_to_string(piece: &Piece) -> String {
     }
 }
 
+pub fn piece_opposite(piece: &Piece) -> Piece {
+    match piece {
+        Piece::Black => Piece::Red,
+        Piece::Red => Piece::Black,
+        Piece::None => Piece::None,
+    }
+}
+
 pub fn map2d(x: &i16, y: &i16) -> usize {
     ((y * Board::WIDTH as i16) + x) as usize
 }
-
 pub fn map2d_coord(coord: &(i16, i16)) -> usize {
     ((coord.1 * Board::WIDTH as i16) + coord.0) as usize
 }
@@ -35,15 +41,17 @@ pub fn coord_is_in_bounds(coord: &(i16, i16)) -> bool {
     coord.0 >= 0 && coord.0 < Board::WIDTH as i16 && coord.1 >= 0 && coord.1 < Board::WIDTH as i16
 }
 
+//target, capture, origin
+type CaptureType = ((i16, i16), (i16, i16), (i16, i16));
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum MoveAction {
     Move((i16, i16)),
-    Capture(((i16, i16), (i16, i16))),
+    Capture(CaptureType),
 }
 
 type MoveReturn = Vec<MoveAction>;
 
-pub fn contains_coords(mr: &MoveReturn, b: &Board, c: (i16, i16)) -> bool {
+pub fn contains_coords(mr: &MoveReturn, c: (i16, i16)) -> bool {
     let mut ret: bool = false;
     for ma in mr {
         //available_moves_coord(b, b.first.unwrap()
@@ -53,7 +61,7 @@ pub fn contains_coords(mr: &MoveReturn, b: &Board, c: (i16, i16)) -> bool {
                     ret = true
                 }
             }
-            MoveAction::Capture(((a, b), (_, _))) => {
+            MoveAction::Capture(((a, b), (_, _), (_, _))) => {
                 if (&c.0, &c.1) == (a, b) {
                     ret = true
                 }
@@ -74,6 +82,57 @@ fn has_captures(mr: MoveReturn) -> bool {
     ret
 }
 
+fn get_captures_rec(
+    mr: MoveReturn,
+    end: (i16, i16),
+    start: (i16, i16),
+    mut ret: Vec<(i16, i16)>,
+) -> Vec<(i16, i16)> {
+    //find move
+    for ma in &mr {
+        match ma {
+            MoveAction::Capture(((a, b), (c, d), (e, f))) => {
+                if (a, b) == (&end.0, &end.1) {
+                    ret.push((*c, *d));
+                    ret.append(&mut get_captures_rec(
+                        mr.clone(),
+                        (*e, *f),
+                        start,
+                        ret.clone(),
+                    ));
+                }
+            }
+            _ => (),
+        }
+    }
+    ret
+}
+
+pub fn get_captures(mr: &MoveReturn, end: (i16, i16), start: (i16, i16)) -> Vec<(i16, i16)> {
+    let mut ret: Vec<(i16, i16)> = Vec::new();
+    let mut cap_end: Option<&MoveAction> = Option::None;
+
+    //find if there is a capture with end coords
+    for ma in &mr {
+        match ma {
+            MoveAction::Capture(((a, b), (_, _), (_, _))) => {
+                if (a, b) == (&end.0, &end.1) {
+                    cap_end = Option::from(ma);
+                }
+            }
+            _ => (),
+        }
+    }
+
+    //do recursive search to find all captured pieces
+    if cap_end.is_none() {
+        ret = get_captures_rec(mr.clone(), end, start, ret.clone());
+    }
+
+    ret
+}
+
+//todo move potential move adds to body of function, only needs to be done once
 fn av_moves_rec(b: &Board, sx: &i16, sy: &i16, mr: MoveReturn) -> MoveReturn {
     let mut pm_list: Vec<(i16, i16)> = vec![];
     let mut ret: MoveReturn = mr.clone();
@@ -101,9 +160,7 @@ fn av_moves_rec(b: &Board, sx: &i16, sy: &i16, mr: MoveReturn) -> MoveReturn {
     for target in pm_list {
         //check capture list to prevent move if jump captures
         if b.board_arr[map2d_coord(&target)] == Piece::None {
-            // && ret.1.is_empty()
             //move
-            //ret.push(target.clone());
             ret.push(MoveAction::Move(target.clone()));
         } else if b.board_arr[map2d_coord(&target)] != b.turn {
             let new_target = ((target.0 - sx) + target.0, (target.1 - sy) + target.1);
@@ -111,7 +168,11 @@ fn av_moves_rec(b: &Board, sx: &i16, sy: &i16, mr: MoveReturn) -> MoveReturn {
                 if b.board_arr[map2d_coord(&new_target)] == Piece::None {
                     //ret.0.push(new_target.clone());
                     //ret.1.push(target.clone());
-                    ret.push(MoveAction::Capture((new_target.clone(), target.clone())));
+                    ret.push(MoveAction::Capture((
+                        new_target.clone(),
+                        target.clone(),
+                        (*sx, *sy),
+                    )));
                     //let mut t: MoveReturn =
                     //    av_moves_rec(b, &new_target.0, &new_target.1, ret.clone());
                     //ret.0.append(&mut t.0);

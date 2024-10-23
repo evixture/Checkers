@@ -11,71 +11,42 @@ pub fn update(board: &mut Board, msg: BoardStateMsg) {
                 //deselect by selecting same spot
                 let bf = board.first.unwrap();
                 let mr = available_moves_coord(board, bf);
-                if board.first.unwrap() == (x, y) {
+                if bf == (x, y) {
                     board.first = None;
-                    return;
+                    //return;
                     //println!("deselected first");
                 } else {
+                    //otherwise look to see if there is a move that matches selection coords
                     //println!("selected second");
                     for ma in mr {
                         match ma {
                             MoveAction::Move((a, b)) => {
                                 if (a, b) == (x, y) {
+                                    //move
                                     board.board_arr[map2d_coord(&(a, b))] = board.turn.clone();
-                                    board.board_arr[map2d_coord(&board.first.unwrap())] =
-                                        Piece::None;
-                                    if board.turn == Piece::Black {
-                                        board.turn = Piece::Red
-                                    } else {
-                                        board.turn = Piece::Black;
-                                    }
+                                    board.board_arr[map2d_coord(&bf)] = Piece::None;
+                                    board.turn = piece_opposite(&board.turn);
                                     board.first = None;
                                 }
                             }
-                            MoveAction::Capture(((a, b), (c, d))) => {
+                            MoveAction::Capture(((a, b), (c, d), (e, f))) => {
                                 if (a, b) == (x, y) {
+                                    //jump/move/capture
                                     board.board_arr[map2d_coord(&(a, b))] = board.turn.clone();
-                                    board.board_arr[map2d_coord(&board.first.unwrap())] =
-                                        Piece::None;
-                                    board.board_arr[map2d_coord(&(c, d))] = Piece::None;
-                                    if board.turn == Piece::Black {
-                                        board.turn = Piece::Red
-                                    } else {
-                                        board.turn = Piece::Black;
+                                    board.board_arr[map2d_coord(&bf)] = Piece::None;
+                                    //clear captured pieces
+                                    for cap in get_captures(mr, (a, b), (x, y)) {
+                                        board.board_arr[map2d_coord(&cap)] = Piece::None;
                                     }
+                                    board.turn = piece_opposite(&board.turn);
                                     board.first = None;
                                 }
                             }
                         }
                     }
-
-                    // for av_move in v1.0 {
-                    //     //println!("{:?} {}, {}", av_move, x, y);
-                    //     if av_move == (x, y) {
-                    //         //println!("matched move");
-                    //         match b.turn {
-                    //             Piece::Black => {
-                    //                 b.turn = Piece::Red;
-                    //                 b.board_arr[map2d_coord(&av_move)] = Piece::Black;
-                    //                 println!("move black");
-                    //             }
-                    //             Piece::Red => {
-                    //                 b.turn = Piece::Black;
-                    //                 b.board_arr[map2d_coord(&av_move)] = Piece::Red;
-                    //                 println!("move red");
-                    //             }
-                    //             _ => (),
-                    //         }
-                    //         //remove all captured
-                    //         for coord in &v1.1 {
-                    //             b.board_arr[map2d_coord(&coord)] = Piece::None;
-                    //         }
-                    //         b.board_arr[map2d_coord(&bf)] = Piece::None;
-                    //         b.first = None;
-                    //     }
-                    // }
                 }
             } else if board.first.is_none() {
+                //try to select piece if none is selected
                 if board.board_arr[map2d(&x, &y)] == board.turn
                     && !available_moves(board, x, y).is_empty()
                 {
@@ -118,7 +89,7 @@ fn get_space_color(b: &Board, y: i16, x: i16) -> fn(&Theme, Status) -> Style {
     if b.first.is_some() && b.first.unwrap() == (x, y) {
         style_selected
     } else if b.first.is_some()
-        && contains_coords(&available_moves_coord(b, b.first.unwrap()), b, (x, y))
+        && contains_coords(&available_moves_coord(b, b.first.unwrap()), (x, y))
     {
         style_available
     } else if (x + y) % 2 == 0 {
