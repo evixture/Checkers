@@ -10,7 +10,7 @@ pub fn update(board: &mut Board, msg: BoardStateMsg) {
             if board.first.is_some() {
                 //deselect by selecting same spot
                 let bf = board.first.unwrap();
-                let mr = available_moves_coord(board, bf);
+                let mr = available_moves_coord(board, &bf);
                 if bf == (x, y) {
                     board.first = None;
                     //return;

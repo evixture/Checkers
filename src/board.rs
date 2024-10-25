@@ -84,8 +84,8 @@ fn has_captures(mr: MoveReturn) -> bool {
 
 fn get_captures_rec(
     mr: MoveReturn,
-    end: (i16, i16),
-    start: (i16, i16),
+    end: &(i16, i16),
+    start: &(i16, i16),
     mut ret: Vec<(i16, i16)>,
 ) -> Vec<(i16, i16)> {
     //find move
@@ -96,7 +96,7 @@ fn get_captures_rec(
                     ret.push((*c, *d));
                     ret.append(&mut get_captures_rec(
                         mr.clone(),
-                        (*e, *f),
+                        &(*e, *f),
                         start,
                         ret.clone(),
                     ));
@@ -108,7 +108,7 @@ fn get_captures_rec(
     ret
 }
 
-pub fn get_captures(mr: &MoveReturn, end: (i16, i16), start: (i16, i16)) -> Vec<(i16, i16)> {
+pub fn get_captures(mr: &MoveReturn, end: &(i16, i16), start: &(i16, i16)) -> Vec<(i16, i16)> {
     let mut ret: Vec<(i16, i16)> = Vec::new();
     let mut cap_end: Option<&MoveAction> = Option::None;
 
@@ -116,7 +116,7 @@ pub fn get_captures(mr: &MoveReturn, end: (i16, i16), start: (i16, i16)) -> Vec<
     for ma in &mr {
         match ma {
             MoveAction::Capture(((a, b), (_, _), (_, _))) => {
-                if (a, b) == (&end.0, &end.1) {
+                if (a, b) == (end.0, end.1) {
                     cap_end = Option::from(ma);
                 }
             }
@@ -202,7 +202,7 @@ pub fn available_moves(b: &Board, sx: i16, sy: i16) -> MoveReturn {
     ret
 }
 
-pub fn available_moves_coord(b: &Board, s_coords: (i16, i16)) -> MoveReturn {
+pub fn available_moves_coord(b: &Board, s_coords: &(i16, i16)) -> MoveReturn {
     available_moves(b, s_coords.0, s_coords.1)
 }
 
@@ -282,13 +282,10 @@ impl Board {
     pub fn print(self) {
         for y in 0..Self::WIDTH {
             for x in 0..Self::WIDTH {
-                let mut str: String = String::new();
-                match self.board_arr[map2d(&(x as i16), &(y as i16))] {
-                    Piece::None => str.push_str("."),
-                    Piece::Black => str.push_str("B"),
-                    Piece::Red => str.push_str("R"),
-                }
-                print!("{}", str);
+                print!(
+                    "{}",
+                    piece_to_string(&self.board_arr[map2d(&(x as i16), &(y as i16))])
+                );
             }
             println!();
         }
