@@ -110,13 +110,13 @@ fn get_captures_rec(
 
 pub fn get_captures(mr: &MoveReturn, end: &(i16, i16), start: &(i16, i16)) -> Vec<(i16, i16)> {
     let mut ret: Vec<(i16, i16)> = Vec::new();
-    let mut cap_end: Option<&MoveAction> = Option::None;
+    let mut cap_end: Option<&MoveAction> = None;
 
     //find if there is a capture with end coords
-    for ma in &mr {
+    for ma in mr {
         match ma {
             MoveAction::Capture(((a, b), (_, _), (_, _))) => {
-                if (a, b) == (end.0, end.1) {
+                if (a, b) == (&end.0, &end.1) {
                     cap_end = Option::from(ma);
                 }
             }
@@ -132,74 +132,81 @@ pub fn get_captures(mr: &MoveReturn, end: &(i16, i16), start: &(i16, i16)) -> Ve
     ret
 }
 
-//todo move potential move adds to body of function, only needs to be done once
-fn av_moves_rec(b: &Board, sx: &i16, sy: &i16, mr: MoveReturn) -> MoveReturn {
-    let mut pm_list: Vec<(i16, i16)> = vec![];
-    let mut ret: MoveReturn = mr.clone();
-
-    match b.turn {
+fn get_adjacent_coords(sx: &i16, sy: &i16, turn: &Piece) -> Vec<(i16, i16)> {
+    let mut ret: Vec<(i16, i16)> = Vec::new();
+    match turn {
         Piece::Black => {
             if coord_is_in_bounds(&(sx - 1, sy + 1)) {
-                pm_list.push((sx - 1, sy + 1));
+                ret.push((sx - 1, sy + 1));
             }
             if coord_is_in_bounds(&(sx + 1, sy + 1)) {
-                pm_list.push((sx + 1, sy + 1));
+                ret.push((sx + 1, sy + 1));
             }
         }
         Piece::Red => {
             if coord_is_in_bounds(&(sx - 1, sy - 1)) {
-                pm_list.push((sx - 1, sy - 1));
+                ret.push((sx - 1, sy - 1));
             }
             if coord_is_in_bounds(&(sx + 1, sy - 1)) {
-                pm_list.push((sx + 1, sy - 1));
+                ret.push((sx + 1, sy - 1));
             }
         }
         _ => (),
     }
+    ret
+}
 
-    for target in pm_list {
-        //check capture list to prevent move if jump captures
-        if b.board_arr[map2d_coord(&target)] == Piece::None {
-            //move
-            ret.push(MoveAction::Move(target.clone()));
-        } else if b.board_arr[map2d_coord(&target)] != b.turn {
+//todo move potential move adds to body of function, only needs to be done once
+fn av_moves_rec(b: &Board, sx: &i16, sy: &i16, mut mr: MoveReturn) -> MoveReturn {
+    //let pm_list: Vec<(i16, i16)> = get_adjacent_coords(sx, sy, &b.turn);
+    //let mut ret: MoveReturn = mr.clone();
+
+    for target in get_adjacent_coords(sx, sy, &b.turn) {
+        //check potential moves
+        if b.board_arr[map2d_coord(&target)] != Piece::None
+            && b.board_arr[map2d_coord(&target)] != b.turn
+        {
             let new_target = ((target.0 - sx) + target.0, (target.1 - sy) + target.1);
             if coord_is_in_bounds(&new_target) {
                 if b.board_arr[map2d_coord(&new_target)] == Piece::None {
-                    //ret.0.push(new_target.clone());
-                    //ret.1.push(target.clone());
-                    ret.push(MoveAction::Capture((
+                    mr.push(MoveAction::Capture((
                         new_target.clone(),
                         target.clone(),
                         (*sx, *sy),
                     )));
-                    //let mut t: MoveReturn =
-                    //    av_moves_rec(b, &new_target.0, &new_target.1, ret.clone());
-                    //ret.0.append(&mut t.0);
-                    //ret.1.append(&mut t.1);
-                    ret.append(&mut av_moves_rec(
+                    mr.append(&mut av_moves_rec(
                         b,
                         &new_target.0,
                         &new_target.1,
-                        ret.clone(),
+                        mr.clone(),
                     ));
                 }
             }
         }
     }
-    ret
+    mr
 }
 
 pub fn available_moves(b: &Board, sx: i16, sy: i16) -> MoveReturn {
-    let v: MoveReturn = vec![];
-    let mut ret: MoveReturn = av_moves_rec(b, &sx, &sy, v);
-    // ret.0.sort();
-    // ret.1.sort();
-    // ret.0.dedup();
-    // ret.1.dedup();
-    ret.sort();
-    ret.dedup();
-    ret
+    let mut mr: MoveReturn = Vec::new();
+    //let pm_list: Vec<(i16, i16)> = get_adjacent_coords(&sx, &sy, &b.turn);
+
+    for target in get_adjacent_coords(&sx, &sy, &b.turn) {
+        //move
+        if b.board_arr[map2d_coord(&target)] == Piece::None {
+            mr.push(MoveAction::Move(target.clone()));
+        //potential capture, uses recursive function
+        } else if b.board_arr[map2d_coord(&target)] != b.turn {
+            let new_target = ((target.0 - sx) + target.0, (target.1 - sy) + target.1);
+            if coord_is_in_bounds(&new_target) {
+                mr.append(&mut av_moves_rec(b, &sx, &sy, Vec::new()));
+            }
+        }
+    }
+
+    mr.sort();
+    mr.dedup();
+    mr
 }
 
 pub fn available_moves_coord(b: &Board, s_coords: &(i16, i16)) -> MoveReturn {
@@ -254,6 +261,10 @@ impl Board {
             game_over: false,
         }
     }
+
+    // pub fn piece_at(&mut self, coord: (i16, i16)) -> Piece {
+    //     self.board_arr[((coord.1 * Board::WIDTH as i16) + coord.0) as usize]
+    // }
 
     pub fn check_game_win(&mut self) {
         let mut has_red = false;

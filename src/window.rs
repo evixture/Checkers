@@ -18,7 +18,7 @@ pub fn update(board: &mut Board, msg: BoardStateMsg) {
                 } else {
                     //otherwise look to see if there is a move that matches selection coords
                     //println!("selected second");
-                    for ma in mr {
+                    for ma in mr.clone() {
                         match ma {
                             MoveAction::Move((a, b)) => {
                                 if (a, b) == (x, y) {
@@ -35,7 +35,7 @@ pub fn update(board: &mut Board, msg: BoardStateMsg) {
                                     board.board_arr[map2d_coord(&(a, b))] = board.turn.clone();
                                     board.board_arr[map2d_coord(&bf)] = Piece::None;
                                     //clear captured pieces
-                                    for cap in get_captures(mr, (a, b), (x, y)) {
+                                    for cap in get_captures(&mr, &(a, b), &(x, y)) {
                                         board.board_arr[map2d_coord(&cap)] = Piece::None;
                                     }
                                     board.turn = piece_opposite(&board.turn);
@@ -89,7 +89,7 @@ fn get_space_color(b: &Board, y: i16, x: i16) -> fn(&Theme, Status) -> Style {
     if b.first.is_some() && b.first.unwrap() == (x, y) {
         style_selected
     } else if b.first.is_some()
-        && contains_coords(&available_moves_coord(b, b.first.unwrap()), (x, y))
+        && contains_coords(&available_moves_coord(b, &b.first.unwrap()), (x, y))
     {
         style_available
     } else if (x + y) % 2 == 0 {
